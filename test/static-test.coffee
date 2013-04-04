@@ -1,6 +1,6 @@
 assert = require 'assert'
 request = require 'request'
-app = require '../server'
+app = require '../app'
 
 describe 'home page', ->
 	options =
@@ -13,14 +13,4 @@ describe 'home page', ->
 				done()
 		it "is successful", ->
 			assert.match response["statusCode"], "200"
-
-	describe 'correct body', ->
-		body = null
-		before (done) ->
-			request options, (err, _response, _body) ->
-				console.log(_body)
-				body = _body
-				done()
-		it "is Hello world", ->
-			assert.match body, "Hello world"
 
