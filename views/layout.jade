@@ -2,14 +2,12 @@
 html
   head
     title #{title} - My Site
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', type="text/css", href='/stylesheets/style.css')
+    link(href='http://fonts.googleapis.com/css?family=Abril+Fatface', rel='stylesheet', type='text/css')
+    link(href='http://fonts.googleapis.com/css?family=Average', rel='stylesheet', type='text/css')
   body
     header
-      h1 My Site
+      h1 #{title}
     .container
       .main-content
         block content
-      .sidebar
-        block sidebar
-    footer
-      p Running on node with Express, Jade and Stylus
