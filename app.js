@@ -28,7 +28,7 @@ app.configure(function () {
 });
 
 app.get('/', function(req, res) {
-   res.render('index', 
+   res.render('page', 
     { title: 'Home',
       body: 'This is the body'}
    );
@@ -42,7 +42,7 @@ app.get('/pages', function(req, res) {
 function setUrlListeners(docs) {
   docs.forEach(function (doc) {
     app.get(doc.path, function(req, res) {
-      res.render('index', {
+      res.render('page', {
         title: doc.title,
         body: doc.body
       });
@@ -61,6 +61,8 @@ app.post('/page', function(req, res) {
     else {
       console.log("Page saved");
       db.pages.find(function(err, docs) {
+        // Note that this might cause redundant listeners to be created
+        // since it is called on all docs every time a new doc is saved
         setUrlListeners(docs);
       });
     }
