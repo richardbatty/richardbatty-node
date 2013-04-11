@@ -1,5 +1,8 @@
 extend layout
 block content
+  - each doc in docs
+    li
+      a(href=doc.path)= doc.title
   form(method='post', action='/page/')
     input(type='text', name='pageTitle')
     input(type='text', name='path')

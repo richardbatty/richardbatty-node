@@ -35,8 +35,23 @@ app.get('/', function(req, res) {
 });
 
 app.get('/pages', function(req, res) {
-  res.render('pages',
-    { title: 'Pages editor' });
+  var titleList = new Array()
+    , titleListJade = 'ul \n';
+
+  db.pages.find(function(err, docs) {
+    //docs.forEach(function(doc) {
+    //  titleList.push(doc)
+    //});
+    // Note that forEach is not asynchronous so calling something
+    // after it is OK
+    console.log(JSON.stringify(titleList));
+    res.render('pages',
+      { title: 'Pages editor', 
+        docs: docs });
+  });
+  // Remember the asynchronous nature of this, you can't assume
+  // res.render happens after db.pages.find has finished
+
 })
 
 function setUrlListeners(docs) {
