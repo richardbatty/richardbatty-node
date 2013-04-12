@@ -2,7 +2,8 @@ var express = require('express')
   , lessMiddleware = require('less-middleware')
   , databaseUrl = 'mydb'
   , collections = ['pages']
-  , db = require('mongojs').connect(databaseUrl, collections);
+  , db = require('mongojs').connect(databaseUrl, collections)
+  , md = require('node-markdown').Markdown;
 
 
 var app = express();
@@ -59,7 +60,8 @@ function setUrlListeners(docs) {
     app.get(doc.path, function(req, res) {
       res.render('page', {
         title: doc.title,
-        body: doc.body
+        body: doc.body,
+        md: md
       });
     });
   })
