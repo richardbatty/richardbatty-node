@@ -1,0 +1,7 @@
+extend layout
+block content
+  form(method='post', action='/page/')
+  input(type='text', name='pageTitle')
+  input(type='text', name='path')
+  textarea(name='pageText', rows=10, columns=10)
+  input(type='submit', value='Submit')

@@ -31,21 +31,15 @@ app.configure(function () {
 app.get('/', function(req, res) {
    res.render('page', 
     { title: 'Home',
-      body: 'This is the body'}
+      body: 'This is the body',
+      md: md
+    }
    );
 });
 
 app.get('/pages', function(req, res) {
-  var titleList = new Array()
-    , titleListJade = 'ul \n';
-
   db.pages.find(function(err, docs) {
-    //docs.forEach(function(doc) {
-    //  titleList.push(doc)
-    //});
-    // Note that forEach is not asynchronous so calling something
-    // after it is OK
-    console.log(JSON.stringify(titleList));
+    console.log(JSON.stringify(docs));
     res.render('pages',
       { title: 'Pages editor', 
         docs: docs });
@@ -55,7 +49,13 @@ app.get('/pages', function(req, res) {
 
 })
 
+app.get('/pages/new', function(req, res) {
+  res.render('new',
+    { title: 'New'});
+})
+
 function setUrlListeners(docs) {
+  console.log(md('#hello'));
   docs.forEach(function (doc) {
     app.get(doc.path, function(req, res) {
       res.render('page', {
@@ -71,9 +71,10 @@ app.post('/page', function(req, res) {
   var title = req.body.pageTitle
     , body  = req.body.pageText
     , path  = req.body.path
-    , reqBody = JSON.stringify(req.body);
+    , reqBody = JSON.stringify(req.body)
+    , pageDoc = {title: title, path: path, body: body};
   console.log("Request body is: " + reqBody);
-  db.pages.save({title: title, path: path, body: body}, function(err, saved) {
+  db.pages.save(pageDoc, function(err, saved) {
     if (err || !saved) console.log("Page not saved! Error: " + err);
     else {
       console.log("Page saved");
