@@ -3,8 +3,8 @@ var express = require('express')
   , databaseUrl = 'mydb'
   , collections = ['pages']
   , db = require('mongojs').connect(databaseUrl, collections)
-  , md = require('node-markdown').Markdown;
-
+  , md = require('node-markdown').Markdown
+  , slug = require('slug');
 
 var app = express();
 module.exports = app;
@@ -41,7 +41,7 @@ app.get('/pages', function(req, res) {
   db.pages.find(function(err, docs) {
     console.log(JSON.stringify(docs));
     res.render('pages',
-      { title: 'Pages editor', 
+      { title: 'Pages', 
         docs: docs });
   });
   // Remember the asynchronous nature of this, you can't assume
@@ -51,7 +51,7 @@ app.get('/pages', function(req, res) {
 
 app.get('/pages/new', function(req, res) {
   res.render('new',
-    { title: 'New'});
+    { title: 'New page'});
 })
 
 function setUrlListeners(docs) {
@@ -67,10 +67,10 @@ function setUrlListeners(docs) {
   })
 };
 
-app.post('/page', function(req, res) {
+app.post('/pages', function(req, res) {
   var title = req.body.pageTitle
     , body  = req.body.pageText
-    , path  = req.body.path
+    , path  = '/' + slug(title)
     , reqBody = JSON.stringify(req.body)
     , pageDoc = {title: title, path: path, body: body};
   console.log("Request body is: " + reqBody);
