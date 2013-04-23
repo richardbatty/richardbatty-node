@@ -4,23 +4,23 @@ var express = require('express')
   , collections = ['pages']
   , db = require('mongojs').connect(databaseUrl, collections)
   , md = require('node-markdown').Markdown
-  , slug = require('slug');
+  , slug = require('slug')
+  , requestModule = require('request');
 
 var app = express();
-module.exports = app;
 
-function compile(str, path) {
-  return stylus(str)
-    .set('filename', path)
-    .set('compress', true)
-    .use(nib());
-}
+
+
 app.configure(function () {
     app.set('port', 3000);
     app.set('views', __dirname + '/views');
     app.set('view engine', 'jade');
     app.use(express.logger('dev'));
     app.use(express.bodyParser());
+    // To simulate full restful HTTP support in HTML forms.
+    // See http://stackoverflow.com/questions/8378338/what-does-connect-js-methodoverride-do
+    // for explanation
+    app.use(express.methodOverride());
     app.use(lessMiddleware({
       src      : __dirname + "/public",
       compress : true
@@ -37,16 +37,18 @@ app.get('/', function(req, res) {
    );
 });
 
-app.get('/pages', function(req, res) {
-  db.pages.find(function(err, docs) {
-    console.log(JSON.stringify(docs));
-    res.render('pages',
-      { title: 'Pages', 
-        docs: docs });
+function renderPagesList(req, res) {
+  db.pages.find(function(err, docs){
+    res.render('pages', {
+      title: 'Pages',
+      docs: docs
+    });
   });
-  // Remember the asynchronous nature of this, you can't assume
-  // res.render happens after db.pages.find has finished
+}
 
+
+app.get('/pages', function(req, res) {
+  renderPagesList(req, res);
 })
 
 app.get('/pages/new', function(req, res) {
@@ -54,39 +56,76 @@ app.get('/pages/new', function(req, res) {
     { title: 'New page'});
 })
 
-function setUrlListeners(docs) {
-  console.log(md('#hello'));
-  docs.forEach(function (doc) {
-    app.get(doc.path, function(req, res) {
-      res.render('page', {
-        title: doc.title,
-        body: doc.body,
-        md: md
-      });
+app.get('/pages/:path', function(req, res) {
+  console.log(req.params.path);
+  db.pages.find({path: '/pages/' + req.params.path}, function(err, docs) {
+    res.render('page', {
+      title: docs[0].title,
+      body: docs[0].body,
+      md: md
     });
-  })
-};
+  });
+});
+
+app.get('/pages/:path/edit', function(req, res) {
+  db.pages.find({path: '/pages/' + req.params.path}, function(err, docs) {
+    res.render('edit', {
+      title: docs[0].title,
+      body: docs[0].body,
+      md: md,
+      doc: docs[0]
+    });
+  });
+});
+
+app.put('/pages/:path', function(req, res) {
+  var title = req.body.pageTitle
+    , body = req.body.pageText
+    , path = '/pages/' + slug(title)
+    , modifyOptions = {
+        query: { path: '/pages/' + req.params.path },
+        update: { $set: 
+          { title: title,
+            body: body,
+            path: path
+          }
+        },
+        new: true
+      };
+  db.pages.findAndModify(modifyOptions, function(err, doc) {
+    // doc.tag === 'maintainer'
+    console.log("The modified doc: ");
+    console.log(doc);
+    res.redirect('/pages');
+  });
+})
+
+app.delete('/pages/:path', function(req, res) {
+  db.pages.find({path: '/pages/' + req.params.path}, function(err, docs) {
+    db.pages.remove(docs[0], function(err, numberOfRemovedDocs) {
+      console.log(numberOfRemovedDocs + ' pages were removed');
+      res.redirect('/pages');
+    });
+  });
+});
 
 app.post('/pages', function(req, res) {
   var title = req.body.pageTitle
     , body  = req.body.pageText
-    , path  = '/' + slug(title)
+    , path  = '/pages/' + slug(title)
     , reqBody = JSON.stringify(req.body)
     , pageDoc = {title: title, path: path, body: body};
-  console.log("Request body is: " + reqBody);
   db.pages.save(pageDoc, function(err, saved) {
     if (err || !saved) console.log("Page not saved! Error: " + err);
     else {
       console.log("Page saved");
-      db.pages.find(function(err, docs) {
-        // Note that this might cause redundant listeners to be created
-        // since it is called on all docs every time a new doc is saved
-        setUrlListeners(docs);
-      });
+      res.redirect('/pages');
     }
   });
-  res.end();
 });
+
+
+
 
 //db.pages.remove();
 
@@ -96,4 +135,6 @@ app.post('/pages', function(req, res) {
 //});
 
 app.listen(app.settings.port);
-console.log("Listening on port" + app.settings.port);
+console.log("Listening on port " + app.settings.port);
+
+module.exports = app;

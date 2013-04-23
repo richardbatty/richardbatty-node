@@ -3,3 +3,8 @@ block content
   - each doc in docs
     li
       a(href=doc.path)= doc.title
+      form(action='#{doc.path}', method='post')
+        input(type='submit', value='Delete')
+        input(type="hidden", name="_method", value="delete")
+  p Test paragraph
+  a(href='/pages/new') Create new page

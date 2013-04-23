@@ -1,0 +1,8 @@
+extend layout
+block content
+  p Edit the page
+  form(action='#{doc.path}', method='post')
+    textarea(name='pageTitle', rows=1, columns=10) #{doc.title}
+    textarea(name='pageText', rows=10, columns=10) #{doc.body}
+    input(type="hidden", name="_method", value="put")
+    input(type='submit', value='Submit')
